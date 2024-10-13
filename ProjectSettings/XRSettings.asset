@@ -1,0 +1,22 @@
+<<<<<<< HEAD
+{
+    "m_SettingKeys": [
+        "VR Device Disabled",
+        "VR Device User Alert"
+    ],
+    "m_SettingValues": [
+        "False",
+        "False"
+    ]
+=======
+{
+    "m_SettingKeys": [
+        "VR Device Disabled",
+        "VR Device User Alert"
+    ],
+    "m_SettingValues": [
+        "False",
+        "False"
+    ]
+>>>>>>> c472f07369318bffbbf44b58fd0db4f341a09246
+}
