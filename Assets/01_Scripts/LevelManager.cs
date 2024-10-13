@@ -1,19 +1,12 @@
-
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    // Este método puede ser llamado cuando el jugador interactúa con el portal
+    public void LoadNextLevel(string levelName)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Cargar la escena con el nombre proporcionado
+        SceneManager.LoadScene(levelName);
     }
 }
