@@ -2,16 +2,15 @@ using UnityEngine;
 
 public class Crank : MonoBehaviour
 {
-    public GameObject door; // Referencia a la puerta que se abrirá
-    public float moveDistance = 2f; // Distancia que se moverá la puerta
-    public float moveSpeed = 2f; // Velocidad de movimiento de la puerta
+    public GameObject[] doors; // Array de referencias a las puertas que se abrirán
+    public float moveDistance = 2f; // Distancia que se moverán las puertas
+    public float moveSpeed = 2f; // Velocidad de movimiento de las puertas
     private bool isActivated = false; // Estado de la palanca
-    private bool playerInRange = false; // Estado de proximidad del jugador
 
     void Update()
     {
-        // Verifica si se presiona la tecla E y el jugador está en rango
-        if (Input.GetKeyDown(KeyCode.E) && !isActivated && playerInRange)
+        // Verifica si se presiona la tecla E
+        if (Input.GetKeyDown(KeyCode.E) && !isActivated)
         {
             ActivateCrank();
         }
@@ -20,10 +19,13 @@ public class Crank : MonoBehaviour
     void ActivateCrank()
     {
         isActivated = true; // Marca la palanca como activada
-        StartCoroutine(OpenDoor());
+        foreach (GameObject door in doors)
+        {
+            StartCoroutine(OpenDoor(door)); // Inicia la coroutine para cada puerta
+        }
     }
 
-    private System.Collections.IEnumerator OpenDoor()
+    private System.Collections.IEnumerator OpenDoor(GameObject door)
     {
         Vector3 targetPosition = door.transform.position + new Vector3(-moveDistance, 0, 0); // Calcula la nueva posición de la puerta
 
@@ -36,21 +38,5 @@ public class Crank : MonoBehaviour
 
         // Destruye la puerta después de abrirse
         Destroy(door);
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player")) // Asegúrate de que tu jugador tenga el tag "Player"
-        {
-            playerInRange = true; // Marca que el jugador está en rango
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
-        {
-            playerInRange = false; // Marca que el jugador ha salido del rango
-        }
     }
 }

@@ -10,3 +10,7 @@
 [Bb]uild/
 [Bb]uilds/
 [Ll]ogs/
+
+# Ignorar carpetas de compilación y archivos temporales
+obj/
+bin/
