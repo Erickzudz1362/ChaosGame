@@ -2,13 +2,16 @@ using UnityEngine;
 
 public class PlayerController2 : MonoBehaviour
 {
-    public float moveSpeed = 4f; // Velocidad de movimiento de Nova
+    public float moveSpeed = 4f; // Velocidad de movimiento
     public float jumpForce = 7f; // Fuerza de salto
-    public Rigidbody2D rb; // Referencia al Rigidbody2D para aplicar físicas
-    public Animator animator; // Referencia al Animator para controlar las animaciones
+    public float doubleJumpForce = 5f; // Fuerza de doble salto
+    public float pushForce = 5f; // Fuerza de empuje al chocar
+    public Rigidbody2D rb; // Referencia al Rigidbody2D
+    public Animator animator; // Referencia al Animator
     public bool canJump = true; // Controla si puede saltar
-    private AudioSource jumpSound; // Referencia al AudioSource para reproducir sonido de salto
-    public AudioSource attackSound; // Referencia al AudioSource para reproducir sonido de ataque
+    private bool canDoubleJump = false; // Controla si puede hacer doble salto
+    private AudioSource jumpSound; // AudioSource para sonido de salto
+    public AudioSource attackSound; // AudioSource para sonido de ataque
 
     private void Start()
     {
@@ -38,28 +41,43 @@ public class PlayerController2 : MonoBehaviour
     {
         if (rb.velocity.x < 0)
         {
-            transform.rotation = Quaternion.Euler(0, 180, 0);
+            transform.localScale = new Vector3(-1, 1, 1); // Mira hacia la izquierda
         }
         else if (rb.velocity.x > 0)
         {
-            transform.rotation = Quaternion.Euler(0, 0, 0);
+            transform.localScale = new Vector3(1, 1, 1); // Mira hacia la derecha
         }
     }
 
+
     void Jump2()
     {
-        if (canJump)
+        // Permitir salto simple y doble
+        if (Input.GetKeyDown(KeyCode.I))
         {
-            if (Input.GetKeyDown(KeyCode.I)) // Usando la tecla "I" para saltar
+            if (canJump)
             {
-                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-                canJump = false;
-                animator.SetBool("Grounded", false);
-                if (jumpSound != null)
-                {
-                    jumpSound.Play(); // Reproduce el sonido de salto
-                }
+                PerformJump(jumpForce); // Salto normal
+                canDoubleJump = true; // Habilitar doble salto
             }
+            else if (canDoubleJump)
+            {
+                PerformJump(doubleJumpForce); // Salto doble más débil
+                canDoubleJump = false; // Deshabilitar doble salto después de usarlo
+            }
+        }
+    }
+
+    void PerformJump(float force)
+    {
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        canJump = false;
+        animator.SetBool("Grounded", false);
+
+        // Reproduce el sonido de salto si el AudioSource está presente
+        if (jumpSound != null)
+        {
+            jumpSound.Play();
         }
     }
 
@@ -84,5 +102,16 @@ public class PlayerController2 : MonoBehaviour
             canJump = true;
             animator.SetBool("Grounded", true);
         }
+        else if (collision.gameObject.CompareTag("Player")) // Verifica si colisiona con otro jugador
+        {
+            // Solo aplica empuje si el jugador en movimiento tiene una velocidad significativa
+            if (Mathf.Abs(rb.velocity.x) > 0.1f) // Ajusta el valor según lo que consideres movimiento significativo
+            {
+                // Calcula la dirección de empuje
+                Vector2 pushDirection = (transform.position - collision.transform.position).normalized; // Normaliza la dirección
+                rb.AddForce(pushDirection * pushForce, ForceMode2D.Impulse); // Aplica la fuerza de empuje
+            }
+        }
     }
+
 }

@@ -2,13 +2,16 @@ using UnityEngine;
 
 public class PlayerController1 : MonoBehaviour
 {
-    public float moveSpeed = 4f; // Velocidad de movimiento de Ecko
+    public float moveSpeed = 4f; // Velocidad de movimiento
     public float jumpForce = 7f; // Fuerza de salto
-    public Rigidbody2D rb; // Referencia al Rigidbody2D para aplicar físicas
-    public Animator animator; // Referencia al Animator para controlar las animaciones
-    public bool canJump = true; // Controla si puede saltar 
-    private AudioSource jumpSound; // Referencia al AudioSource para reproducir sonido
-    public AudioSource actionSound;
+    public float doubleJumpForce = 5f; // Fuerza de doble salto
+    public float pushForce = 5f; // Fuerza de empuje al chocar
+    public Rigidbody2D rb; // Referencia al Rigidbody2D
+    public Animator animator; // Referencia al Animator
+    public bool canJump = true; // Controla si puede saltar
+    private bool canDoubleJump = false; // Controla si puede hacer doble salto
+    private AudioSource jumpSound; // AudioSource para sonido de salto
+    public AudioSource actionSound; // AudioSource para sonido de ataque
 
     float xInitial, yInitial;
 
@@ -35,35 +38,47 @@ public class PlayerController1 : MonoBehaviour
         rb.velocity = new Vector2(x * moveSpeed, rb.velocity.y);
         animator.SetFloat("Speed", Mathf.Abs(x));
     }
-
-    void Mirror()
+void Mirror()
     {
         if (rb.velocity.x < 0)
         {
-            transform.rotation = Quaternion.Euler(0, 180, 0);
+            transform.localScale = new Vector3(-1, 1, 1); // Mira hacia la izquierda
         }
         else if (rb.velocity.x > 0)
         {
-            transform.rotation = Quaternion.Euler(0, 0, 0);
+            transform.localScale = new Vector3(1, 1, 1); // Mira hacia la derecha
         }
     }
 
+
     void Jump()
     {
-        if (canJump)
+        // Permitir salto simple y doble
+        if (Input.GetKeyDown(KeyCode.W))
         {
-            if (Input.GetKeyDown(KeyCode.W))
+            if (canJump)
             {
-                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-                canJump = false;
-                animator.SetBool("Grounded", false);
-
-                // Reproduce el sonido de salto si el AudioSource está presente
-                if (jumpSound != null)
-                {
-                    jumpSound.Play();
-                }
+                PerformJump();
+                canDoubleJump = true; // Habilitar doble salto
             }
+            else if (canDoubleJump)
+            {
+                PerformJump();
+                canDoubleJump = false; // Deshabilitar doble salto después de usarlo
+            }
+        }
+    }
+
+    void PerformJump()
+    {
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        canJump = false;
+        animator.SetBool("Grounded", false);
+
+        // Reproduce el sonido de salto si el AudioSource está presente
+        if (jumpSound != null)
+        {
+            jumpSound.Play();
         }
     }
 
@@ -86,7 +101,18 @@ public class PlayerController1 : MonoBehaviour
             canJump = true;
             animator.SetBool("Grounded", true);
         }
+        else if (collision.gameObject.CompareTag("Player")) // Verifica si colisiona con otro jugador
+        {
+            // Solo aplica empuje si el jugador en movimiento tiene una velocidad significativa
+            if (Mathf.Abs(rb.velocity.x) > 0.1f) // Ajusta el valor según lo que consideres movimiento significativo
+            {
+                // Calcula la dirección de empuje
+                Vector2 pushDirection = (transform.position - collision.transform.position).normalized; // Normaliza la dirección
+                rb.AddForce(pushDirection * pushForce, ForceMode2D.Impulse); // Aplica la fuerza de empuje
+            }
+        }
     }
+
 
     public void Resurect()
     {
